@@ -42,14 +42,9 @@
      "quantity": 0.567,         // количество, если '+' то это покупка, если '-' то это продажа
      "price": 69.2215,          // цена одной ЦБ в валюте сделки. 
      "fee": 0.0,                // комиссия float, положительное (если с минусом, значит возврат комиссии)
-     "cancelled": true,         // опционально - флаг, что это отмена старой сделки
-     // Я пока не поддерживаю разные валюты сделки и комиссии, плюс у меня одна валюта для одного с"income_spending": [
-    {"id": 1, "timestamp": 1578073286, "account": 2, "peer": 0, "lines": [{"amount": -7.96, "category": -5, "description": "BALANCE OF MONTHLY MINIMUM FEE FOR DEC 2019"}]},
-    {"id": 2, "timestamp": 1601462520, "account": 2, "peer": 0, "lines": [{"amount": 0.6905565, "category": -5, "description": "COMMISS COMPUTED AFTER TRADE REPORTED (EWLL)"}]},
-    {"id": 3, "timestamp": 1591142400, "account": 1, "peer": 0, "lines": [{"amount": 0.5, "category": -8, "description": "RUB CREDIT INT FOR MAY-2020"}]},
-    {"id": 4, "timestamp": 1549843200, "account": 2, "peer": 0, "lines": [{"amount": -0.249018, "category": -6, "description": "BABA (ALIBABA GROUP HOLDING-SP ADR) - French Transaction Tax"}]}
-  ],чёта. Поэтому я не указываю валюту при хранении сделки
-     // Насколько я понимаю вам нужны обе валюты - т.е. предлагаю тогда добавить опциональные поля:
+     "cancelled": true,         // опционально - флаг, что это отмена старой сделки}
+     // У меня валюта привязана к счёту, у вас не так, поэтому
+     // насколько я понимаю вам нужны обе валюты - т.е. предлагаю тогда добавить опциональные поля:
      "currency": 2,             // валюта сделки из таблицы 'assets'
      "fee_currency": 2          // валюта комиссии из таблицы 'assets'
      "note": "Исполнение опциона"   // произвольный комментарий
