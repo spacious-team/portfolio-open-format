@@ -16,7 +16,7 @@
     {"id": 2, "type": "money", "symbol": "USD", "name": "Доллар США", "cbr_code": 840},
     {"id": 3, "type": "stock", "symbol": "AMZN", "name": "AMAZON.COM INC", "isin": "US0231351067", 
      "reg-code": "023135106",      // опцинальный код, в данном случае CUSIP.  Можно ограничиться одним полем, а можно разрешить разные (напр, 'cusip')
-     "exchange":  "NASDAQ"         // опиционально, где торгуется, str: 'NASDAQ', 'NYSE', 'MOEX', 'TSX', etc
+     "exchange":  "NASDAQ"         // опиционально, где торгуется, str: 'NASDAQ', 'NYSE', 'MOEX', 'TSX', 'LSE' etc
     },
     {"id": 4, "type": "stock", "symbol": "AFTL", "name": "Аэрофлот-росс.авиалин(ПАО)ао", "isin": "RU0009062285", "reg_code": "1-01-00010-A", "exchange": "MOEX"}
   ],
