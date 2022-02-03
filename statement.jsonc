@@ -8,7 +8,7 @@
   "assets": [   // Активы, встречающиеся в файле
     {
       "id": 1,                     // уникальный для данной выгрузки идентификатор id (int)
-      "type": "stock",             // тип актива, str: 'money', 'stock', etf', 'adr', 'bond', 'futures', 'option', 'warrant', 'security' (if unknown stock, etf of bond), 'derivative' (if unknown futures or 'option)
+      "type": "stock",             // тип актива, str: 'money', 'stock', etf', 'adr', 'bond', 'futures', 'option', 'fx-contract' (foreign exchange market contracts), 'warrant', 'security' (if unknown stock, etf of bond), 'derivative' (if unknown futures or 'option), 'asset' (for common goods)
       "symbol": "AMZN",            // тикер, краткое имя, для money - символьный код по ISO 4217
       "name": "AMAZON.COM INC",    // полное наименование
       "isin": "US0231351067",
