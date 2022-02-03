@@ -1,3 +1,6 @@
+/*
+  Опциональные поля, не содержащие значения могут отсутствовать.
+*/
 {
   "version": "1.0.0",               // версия формата, строка, в формате "x.y.z"
   "end": 1607817600,                // дата-время конца периода (включительно), который покрывается файлом (int, unix timestamp)
@@ -8,10 +11,10 @@
   "assets": [   // Активы, встречающиеся в файле
     {
       "id": 1,                     // уникальный для данной выгрузки идентификатор id (int)
-      "type": "stock",             // тип актива, str: 'money', 'stock', etf', 'adr', 'bond', 'futures', 'option', 'fx-contract' (foreign exchange market contracts), 'warrant', 'security' (if unknown stock, etf of bond), 'derivative' (if unknown futures or 'option), 'asset' (for common goods)
-      "symbol": "AMZN",            // тикер, краткое имя, для money - символьный код по ISO 4217
-      "name": "AMAZON.COM INC",    // полное наименование
-      "isin": "US0231351067",
+      "type": "stock",             // тип актива, str: 'money', 'stock', etf', 'adr' (depositary receipt), 'bond', 'futures', 'option', 'fx-contract' (foreign exchange market contracts), 'warrant', 'security' (if unknown stock, etf of bond), 'derivative' (if unknown futures or 'option), 'asset' (for common goods)
+      "symbol": "AMZN",            // опционально, тикер, краткое имя, для money - символьный код по ISO 4217
+      "name": "AMAZON.COM INC",    // опционально, полное наименование
+      "isin": "US0231351067",      // опционально
       "exchange":  "NASDAQ"        // опционально, где торгуется, 'NASDAQ', 'NYSE', 'MOEX', 'TSX', 'LSE' etc
     },
     {
