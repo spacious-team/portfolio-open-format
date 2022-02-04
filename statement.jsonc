@@ -10,6 +10,7 @@
 
   "assets": [   // Активы, встречающиеся в файле
     {
+      // одно из полей: symbol, name, isin - должно присутствовать обязательно
       "id": 1,                     // уникальный для данной выгрузки идентификатор id (int)
       "type": "stock",             // тип актива, str: 'money', 'stock', etf', 'adr' (depositary receipt), 'bond', 'futures', 'option', 'fx-contract' (foreign exchange market contracts), 'warrant', 'security' (if unknown stock, etf of bond), 'derivative' (if unknown futures or 'option), 'asset' (for common goods)
       "symbol": "AMZN",            // опционально, тикер, краткое имя, для money - символьный код по ISO 4217
