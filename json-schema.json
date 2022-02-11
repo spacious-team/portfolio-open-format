@@ -1,0 +1,200 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://portfolio-open-format.com/portfolio-1.1.0.json",
+    "title": "Portfolio",
+    "description": "Портфель инвестора",
+    "type": "object",
+    "properties": {
+        "version": {
+            "type": "string",
+            "const": "1.1.0",
+            "description": "Версия формата данных, в формате \"x.y.z\", в потоке байтов или в файле это поле должно встречаться первым в объекте"
+        },
+        "end": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "В формате unix timestamp. Дата время в формате unix timestamp конца периода (включительно), который покрывается файлом с данными"
+        },
+        "start": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "В формате unix timestamp. Дата и время начала периода (включительно), который покрывается файлом с данными"
+        },
+        "generated": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "В формате unix timestamp. Дата и время создания"
+        },
+        "generated-by": {
+            "type": "string",
+            "description": "Наименование приложения, создавшего файл"
+        },
+        "accounts": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/account"},
+            "description": "Счета, встречающиеся в файле"
+        },
+        "assets": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/asset"},
+            "description": "Активы, встречающиеся в файле"
+        },
+        "cash-balances": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/cash-balance"},
+            "description": "Денежные остатки на конец периода, обозначенного в поле 'end'"
+        }
+    },
+    "patternProperties": {
+        "^vnd-": {
+            "type": "object",
+            "description": "Пример наименования поля 'vnd-abc'. Объект специфичный для ПО 'abc', где 'abc' - произвольное наименование приложения, выполняющего экспорт полей. Приложение ABC может менять состав полей на свое усмотрение, без согласования с другими участниками, поддерживающими формат"
+        }
+    },
+    "required": [
+        "version",
+        "end",
+        "generated",
+        "generated-by",
+        "accounts",
+        "assets",
+        "cash-balances"
+    ],
+    "$defs": {
+        "account": {
+            "type": "object",
+            "description": "Счет",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Внутренний уникальный для данной выгрузки идентификатор счета"
+                },
+                "account-number": {
+                    "type": "string",
+                    "description": "Номер счёта в финансовой организации"
+                },
+                "valuation": {
+                    "type": "number",
+                    "description": "Оценка стоимости активов на конец периода, обозначенного в поле 'end'"
+                },
+                "valuation-currency": {
+                    "$ref": "#/$defs/currency",
+                    "description": "Cимвольный код валюты (ISO 4217)"
+                }
+            },
+            "required": [
+                "id",
+                "type",
+                "valuation",
+                "valuation-currency"
+            ]
+        },
+        "asset": {
+            "type": "object",
+            "description": "Актив",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Внутренний уникальный для данной выгрузки идентификатор актива"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": ["stock", "etf", "bond", "adr", "gdr", "security", "futures", "option", "warrant", "derivative", "fx-contract", "money", "asset"],
+                    "description": "Тип актива. Примечания: adr, gdr - депозитарные расписки; security - если тип один из следующих: stock, etf, bond, adr, gdr, но какой неизвестно точно; derivative - если тип один из деривативов, но неизвестно точно какой; fx-contract - контракт валютного рынка (например для USDRUB_TOM); money - если денежные средства учитываются в приложении как отдельный актив; asset - для остальных активов, для которых не подходит ни один тип из списка"
+                },
+                "symbol": {
+                    "type": "string",
+                    "description": "Тикер, краткое имя, для money - символьный код (ISO 4217)"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Наименование актива"
+                },
+                "isin": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{2}[A-Z0-9]{9}[0-9]$",
+                    "description": "ISIN"
+                },
+                "exchange": {
+                    "type": "string",
+                    "description": "Биржа, на которой торгуется бумага, например 'MOEX', 'NASDAQ', 'NYSE', 'TSX', 'LSE'"
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "allOf": [
+                {
+                    "anyOf": [
+                        {"required": ["symbol"]},
+                        {"required": ["name"]},
+                        {"required": ["isin"]}
+                    ]
+                },
+                {
+                    "if": {
+                        "properties": {"type": {"enum": ["futures", "option", "warrant", "derivative"]}}
+                    },
+                    "then": {
+                        "required": ["symbol"]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {"type": {"const": "money"}}
+                    },
+                    "then": {
+                        "properties": {"symbol": {"pattern": "^[A-Z]{3}$"}},
+                        "required": ["symbol"]
+                    }
+                }
+            ]
+        },
+        "cash-balance": {
+            "type": "object",
+            "description": "Денежный остаток",
+            "properties": {
+                "account": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Идентификатор счета из раздела 'accounts'"
+                },
+                "cash": {
+                    "type": "array",
+                    "items": {"$ref": "#/$defs/cash"},
+                    "description": "Остаток денежных средств в каждой валюте"
+                }
+            },
+            "required": [
+                "account",
+                "cash"
+            ]
+        },
+        "cash": {
+            "type": "object",
+            "description": "Остаток денежных средств в заданной валюте",
+            "properties": {
+                "value": {
+                    "type": "number",
+                    "description": "Остаток денежных средств"
+                },
+                "currency": {
+                    "$ref": "#/$defs/currency",
+                    "description": "Валюта"
+                }
+            },
+            "required": [
+                "value",
+                "currency"
+            ]
+        },
+        "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "Cимвольный код валюты (ISO 4217)"
+        }
+    }
+}
