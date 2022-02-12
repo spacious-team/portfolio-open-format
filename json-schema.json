@@ -13,7 +13,7 @@
         "end": {
             "type": "integer",
             "minimum": 0,
-            "description": "В формате unix timestamp. Дата время в формате unix timestamp конца периода (включительно), который покрывается файлом с данными"
+            "description": "В формате unix timestamp. Дата время конца периода (включительно), который покрывается файлом с данными"
         },
         "start": {
             "type": "integer",
@@ -43,6 +43,11 @@
             "type": "array",
             "items": {"$ref": "#/$defs/cash-balance"},
             "description": "Денежные остатки на конец периода, обозначенного в поле 'end'"
+        },
+        "trades": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/trade"},
+            "description": "Сделки за период, указанный в полях 'start' и 'end'. Если 'start' отсутствует, то с момента открытия самого первого счета"
         }
     },
     "patternProperties": {
@@ -58,7 +63,8 @@
         "generated-by",
         "accounts",
         "assets",
-        "cash-balances"
+        "cash-balances",
+        "trades"
     ],
     "$defs": {
         "account": {
@@ -189,6 +195,121 @@
             "required": [
                 "value",
                 "currency"
+            ]
+        },
+        "trade": {
+            "type": "object",
+            "description": "Сделка",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Внутренний уникальный для данной выгрузки идентификатор сделки"
+                },
+                "trade-id": {
+                    "type": "string",
+                    "description": "Номер сделки в системе учета брокера"
+                },
+                "timestamp": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "В формате unix timestamp. Дата и время заключения сделки, может отсутствовать, если есть 'settlement'"
+                },
+                "settlement": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "В формате unix timestamp. Дата и время исполнения сделки (поставки), может отсутствовать, если есть 'timestamp'"
+                },
+                "account": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Идентификатор счета из раздела 'accounts'"
+                },
+                "asset": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Идентификатор актива из раздела 'assets'"
+                },
+                "count": {
+                    "type": ["integer", "number"],
+                    "description": "Количество. Для покупки - положительное число, для продажи - отрицательное. Может быть целым числом или вещественным для дробных акций"
+                },
+                "price": {
+                    "type": "number",
+                    "description": "Цена бумаги/контракта (за единицу) в валюте сделки, для облигации - без учета НКД, для деривативов поле может отсутствовать"
+                },
+                "accrued-interest": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "НКД одной облигации на момент сделки в валюте из поля 'currency' (обязательное для облигаций поле)"
+                },
+                "currency": {
+                    "$ref": "#/$defs/currency",
+                    "description": "Cимвольный код ISO 4217 валюты сделки (может отсутствовать, если поле 'price' и 'accrued-interest' отсутствуют)"
+                },
+                "quote": {
+                    "type": "number",
+                    "description": "Котировка дериватива (в пунктах) или облигации (в процентах). Для деривативов - обязательное поле, для облигаций - опциональное"
+                },
+                "fee": {
+                    "type": "number",
+                    "description": "Комиссия сделки. Для возврата комиссии использовать отрицательные значения"
+                },
+                "fee-currency": {
+                    "$ref": "#/$defs/currency",
+                    "description": "Символьный код ISO 4217 валюты комиссии"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Произвольный комментарий к сделке"
+                }
+            },
+            "required": [
+                "id",
+                "trade-id",
+                "account",
+                "asset",
+                "count",
+                "fee",
+                "fee-currency"
+            ],
+            "allOf": [
+                {
+                    "anyOf": [
+                        {"required": ["timestamp"]},
+                        {"required": ["settlement"]}
+                    ]
+                },
+                {
+                    "not": {
+                        "properties": {"count": {"const": 0}}
+                    }
+                },
+                {
+                    "anyOf": [
+                        {"required": ["price"]},
+                        {"required": ["quote"]}
+                    ]
+                },
+                {
+                    "if": {
+                        "anyOf": [
+                            {"required": ["price"]},
+                            {"required": ["accrued-interest"]}
+                        ]
+                    },
+                    "then": {
+                        "required": ["currency"]
+                    }
+                },
+                {
+                    "if": {
+                        "required": ["accrued-interest"]
+                    },
+                    "then": {
+                        "required": ["price"]
+                    }
+                }
             ]
         },
         "currency": {
