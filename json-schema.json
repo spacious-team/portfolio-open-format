@@ -48,6 +48,11 @@
             "type": "array",
             "items": {"$ref": "#/$defs/trade"},
             "description": "Сделки за период, указанный в полях 'start' и 'end'. Если 'start' отсутствует, то с момента открытия самого первого счета"
+        },
+        "payments": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/payment"},
+            "description": "Выплаты, привязанные к активам, за период, указанный в полях 'start' и 'end'. Если 'start' отсутствует, то с момента открытия самого первого счета"
         }
     },
     "patternProperties": {
@@ -64,7 +69,8 @@
         "accounts",
         "assets",
         "cash-balances",
-        "trades"
+        "trades",
+        "payments"
     ],
     "$defs": {
         "account": {
@@ -308,6 +314,96 @@
                     },
                     "then": {
                         "required": ["price"]
+                    }
+                }
+            ]
+        },
+        "payment": {
+            "type": "object",
+            "description": "Выплата, привязанная к активу",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Внутренний уникальный для данной выгрузки идентификатор выплаты"
+                },
+                "payment-id": {
+                    "type": "string",
+                    "description": "Идентификатор выплаты в системе учета брокера"
+                },
+                "account": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Идентификатор счета из раздела 'accounts'"
+                },
+                "asset": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Идентификатор актива из раздела 'assets'"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": ["dividend", "coupon", "bond-amortization", "variation-margin", "fee", "interest", "other"],
+                    "description": "Тип выплаты. Амортизацию облигации нужно учитывать типом 'bond-amortization', но погашения облигации должны учитываться сделкой продажи в разделе 'trades'. Комиссия брокера, привязанная к бумаге, например депозитарная комиссия, должна учитываться типом 'fee'. Процентные доходы кроме купонов, например по банковским счетам, должны учитываться типом 'interest'. Если тип выплаты не попадает ни под один из типов из списка, то используйте тип 'other'"
+                },
+                "count": {
+                    "type": ["integer", "number"],
+                    "description": "Количество бумаг, по которым произведена выплата. Положительное или отрицательное число (например, для деривативов). Может быть целым числом или вещественным для дробных акций"
+                },
+                "timestamp": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "В формате unix timestamp. Дата и время поступления денежных средств на счет"
+                },
+                "amount": {
+                    "type": "number",
+                    "description": "Сумма выплаты (до удержания налога). Для вариационной маржи может быть отрицательное число или ноль"
+                },
+                "currency": {
+                    "$ref": "#/$defs/currency",
+                    "description": "Символьный код (ISO 4217) валюты"
+                },
+                "tax": {
+                    "type": "number",
+                    "description": "Размер удержанного налога"
+                },
+                "tax-currency": {
+                    "$ref": "#/$defs/currency",
+                    "description": "Символьный код (ISO 4217) валюты"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Произвольный комментарий к выплате"
+                }
+            },
+            "required": [
+                "id",
+                "account",
+                "asset",
+                "type",
+                "count",
+                "timestamp",
+                "amount",
+                "currency"
+            ],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {"type": {"enum":  ["dividend", "coupon", "bond-amortization"]}}
+                    },
+                    "then": {
+                        "properties": {
+                            "count": {"exclusiveMinimum":  0},
+                            "amount": {"exclusiveMinimum":  0}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "required": ["tax"]
+                    },
+                    "then": {
+                        "required": ["tax-currency"]
                     }
                 }
             ]
