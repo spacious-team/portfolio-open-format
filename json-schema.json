@@ -554,6 +554,7 @@
         "currency": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
+            "not": {"const":  "RUR"},
             "description": "Cимвольный код валюты (ISO 4217)"
         }
     }
