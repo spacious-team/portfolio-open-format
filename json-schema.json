@@ -353,8 +353,8 @@
                 },
                 "type": {
                     "type": "string",
-                    "enum": ["dividend", "coupon", "bond-amortization", "bond-redemption", "variation-margin", "fee", "interest", "other"],
-                    "description": "Тип выплаты. Амортизацию облигации нужно учитывать типом 'bond-amortization', погашения облигации - типом 'bond-redemption'. Комиссия брокера, привязанная к бумаге, например депозитарная комиссия, должна учитываться типом 'fee'. Процентные доходы кроме купонов, например по банковским счетам, должны учитываться типом 'interest'. Если тип выплаты не попадает ни под один из списка, то используйте 'other'"
+                    "enum": ["dividend", "coupon", "bond-amortization", "variation-margin", "fee", "interest", "other"],
+                    "description": "Тип выплаты. Амортизацию облигации нужно учитывать типом 'bond-amortization', но погашения облигации должны учитываться сделкой продажи в разделе 'trades'. Комиссия брокера, привязанная к бумаге, например депозитарная комиссия, должна учитываться типом 'fee'. Процентные доходы кроме купонов, например по банковским счетам, должны учитываться типом 'interest'. Если тип выплаты не попадает ни под один из списка, то используйте 'other'"
                 },
                 "count": {
                     "type": ["integer", "number"],
@@ -399,7 +399,7 @@
             "allOf": [
                 {
                     "if": {
-                        "properties": {"type": {"enum":  ["dividend", "coupon", "bond-amortization", "bond-redemption"]}}
+                        "properties": {"type": {"enum":  ["dividend", "coupon", "bond-amortization"]}}
                     },
                     "then": {
                         "properties": {
