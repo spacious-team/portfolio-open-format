@@ -102,7 +102,7 @@
                 },
                 "valuation-currency": {
                     "$ref": "#/$defs/currency",
-                    "description": "Cимвольный код валюты (ISO 4217)"
+                    "description": "Символьный код (ISO 4217) валюты"
                 }
             },
             "required": [
@@ -261,7 +261,7 @@
                 },
                 "currency": {
                     "$ref": "#/$defs/currency",
-                    "description": "Cимвольный код ISO 4217 валюты сделки (может отсутствовать, если поле 'price' и 'accrued-interest' отсутствуют)"
+                    "description": "Символьный код (ISO 4217) валюты сделки (может отсутствовать, если поле 'price' и 'accrued-interest' отсутствуют)"
                 },
                 "quote": {
                     "type": "number",
@@ -555,7 +555,7 @@
             "type": "string",
             "pattern": "^[A-Z]{3}$",
             "not": {"const":  "RUR"},
-            "description": "Cимвольный код валюты (ISO 4217)"
+            "description": "Символьный код (ISO 4217) валюты"
         }
     }
 }
