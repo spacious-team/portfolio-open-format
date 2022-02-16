@@ -1,0 +1,561 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://portfolio-open-format.com/portfolio-1.1.0.json",
+    "title": "Portfolio",
+    "description": "Портфель инвестора",
+    "type": "object",
+    "properties": {
+        "version": {
+            "type": "string",
+            "const": "1.1.0",
+            "description": "Версия формата данных, в формате 'x.y.z', в потоке байтов или в файле это поле должно встречаться первым в объекте"
+        },
+        "end": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "В формате unix timestamp. Дата время конца периода (включительно), который покрывается файлом с данными"
+        },
+        "start": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "В формате unix timestamp. Дата и время начала периода (включительно), который покрывается файлом с данными"
+        },
+        "generated": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "В формате unix timestamp. Дата и время создания"
+        },
+        "generated-by": {
+            "type": "string",
+            "description": "Наименование приложения, создавшего файл"
+        },
+        "accounts": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/account"},
+            "description": "Счета, встречающиеся в файле"
+        },
+        "assets": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/asset"},
+            "description": "Активы, встречающиеся в файле"
+        },
+        "cash-balances": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/cash-balance"},
+            "description": "Денежные остатки на конец периода, обозначенного в поле 'end'"
+        },
+        "trades": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/trade"},
+            "description": "Сделки за период, указанный в полях 'start' и 'end'. Если 'start' отсутствует, то с момента открытия самого первого счета"
+        },
+        "payments": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/payment"},
+            "description": "Выплаты, привязанные к активам, за период, указанный в полях 'start' и 'end'. Если 'start' отсутствует, то с момента открытия самого первого счета"
+        },
+        "cash-flows": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/cash-flow"},
+            "description": "Списания и зачисления денежных средств, которые не могут быть привязаны к активам, за период, указанный в полях 'start' и 'end'. Если 'start' отсутствует, то с момента открытия самого первого счета"
+        },
+        "transfers": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/transfer"},
+            "description": "Ввод, вывод ценных бумаг, сплиты акций, обмен валюты не биржевым способом (например банковской операцией) за период, указанный в полях 'start' и 'end'. Если 'start' отсутствует, то с момента открытия самого первого счета. Если выполняется сплит акций, то нужно сохранять 2 (или более) объекта (события списания и зачисления) с одинаковым 'transfer-id' на каждый сплит"
+        }
+    },
+    "patternProperties": {
+        "^vnd-": {
+            "type": "object",
+            "description": "Пример наименования поля 'vnd-abc'. Объект специфичный для ПО 'abc', где 'abc' - произвольное наименование приложения, выполняющего экспорт полей. Приложение ABC может менять состав полей на свое усмотрение, без согласования с другими участниками, поддерживающими формат"
+        }
+    },
+    "required": [
+        "version",
+        "end",
+        "generated",
+        "generated-by",
+        "accounts",
+        "assets",
+        "cash-balances",
+        "trades",
+        "payments"
+    ],
+    "$defs": {
+        "account": {
+            "type": "object",
+            "description": "Счет",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Внутренний уникальный для данной выгрузки идентификатор счета"
+                },
+                "account-number": {
+                    "type": "string",
+                    "description": "Номер счёта в финансовой организации"
+                },
+                "valuation": {
+                    "type": "number",
+                    "description": "Оценка стоимости активов на конец периода, обозначенного в поле 'end'"
+                },
+                "valuation-currency": {
+                    "$ref": "#/$defs/currency",
+                    "description": "Символьный код (ISO 4217) валюты"
+                }
+            },
+            "required": [
+                "id",
+                "type",
+                "valuation",
+                "valuation-currency"
+            ]
+        },
+        "asset": {
+            "type": "object",
+            "description": "Актив",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Внутренний уникальный для данной выгрузки идентификатор актива"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": ["stock", "etf", "bond", "adr", "gdr", "security", "futures", "option", "warrant", "derivative", "fx-contract", "money", "asset"],
+                    "description": "Тип актива. Примечания: adr, gdr - депозитарные расписки; security - если тип один из следующих: stock, etf, bond, adr, gdr, но какой неизвестно точно; derivative - если тип один из деривативов, но неизвестно точно какой; fx-contract - контракт валютного рынка (например для USDRUB_TOM); money - если денежные средства учитываются в приложении как отдельный актив; asset - для остальных активов, для которых не подходит ни один тип из списка"
+                },
+                "symbol": {
+                    "type": "string",
+                    "description": "Тикер, краткое имя, для money - символьный код (ISO 4217)"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Наименование актива"
+                },
+                "isin": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{2}[A-Z0-9]{9}[0-9]$",
+                    "description": "ISIN"
+                },
+                "exchange": {
+                    "type": "string",
+                    "description": "Биржа, на которой торгуется бумага, например 'MOEX', 'NASDAQ', 'NYSE', 'TSX', 'LSE'"
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "allOf": [
+                {
+                    "anyOf": [
+                        {"required": ["symbol"]},
+                        {"required": ["name"]},
+                        {"required": ["isin"]}
+                    ]
+                },
+                {
+                    "if": {
+                        "properties": {"type": {"enum": ["futures", "option", "warrant", "derivative"]}}
+                    },
+                    "then": {
+                        "required": ["symbol"]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {"type": {"const": "money"}}
+                    },
+                    "then": {
+                        "properties": {"symbol": {"pattern": "^[A-Z]{3}$"}},
+                        "required": ["symbol"]
+                    }
+                }
+            ]
+        },
+        "cash-balance": {
+            "type": "object",
+            "description": "Денежный остаток",
+            "properties": {
+                "account": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Идентификатор счета из раздела 'accounts'"
+                },
+                "cash": {
+                    "type": "array",
+                    "items": {"$ref": "#/$defs/cash"},
+                    "description": "Остаток денежных средств в каждой валюте"
+                }
+            },
+            "required": [
+                "account",
+                "cash"
+            ]
+        },
+        "cash": {
+            "type": "object",
+            "description": "Остаток денежных средств в заданной валюте",
+            "properties": {
+                "value": {
+                    "type": "number",
+                    "description": "Остаток денежных средств"
+                },
+                "currency": {
+                    "$ref": "#/$defs/currency",
+                    "description": "Валюта"
+                }
+            },
+            "required": [
+                "value",
+                "currency"
+            ]
+        },
+        "trade": {
+            "type": "object",
+            "description": "Сделка",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Внутренний уникальный для данной выгрузки идентификатор сделки"
+                },
+                "trade-id": {
+                    "type": "string",
+                    "description": "Номер сделки в системе учета брокера"
+                },
+                "timestamp": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "В формате unix timestamp. Дата и время заключения сделки, может отсутствовать, если есть 'settlement'"
+                },
+                "settlement": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "В формате unix timestamp. Дата и время исполнения сделки (поставки), может отсутствовать, если есть 'timestamp'"
+                },
+                "account": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Идентификатор счета из раздела 'accounts'"
+                },
+                "asset": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Идентификатор актива из раздела 'assets'"
+                },
+                "count": {
+                    "type": ["integer", "number"],
+                    "description": "Количество. Для покупки - положительное число, для продажи - отрицательное. Может быть целым числом или вещественным для дробных акций"
+                },
+                "price": {
+                    "type": "number",
+                    "description": "Цена бумаги/контракта (за единицу) в валюте сделки, для облигации - без учета НКД, для деривативов поле может отсутствовать"
+                },
+                "accrued-interest": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "НКД одной облигации на момент сделки в валюте из поля 'currency' (обязательное для облигаций поле)"
+                },
+                "currency": {
+                    "$ref": "#/$defs/currency",
+                    "description": "Символьный код (ISO 4217) валюты сделки (может отсутствовать, если поле 'price' и 'accrued-interest' отсутствуют)"
+                },
+                "quote": {
+                    "type": "number",
+                    "description": "Котировка дериватива (в пунктах) или облигации (в процентах). Для деривативов - обязательное поле, для облигаций - опциональное"
+                },
+                "fee": {
+                    "type": "number",
+                    "description": "Комиссия сделки. Для возврата комиссии использовать отрицательные значения"
+                },
+                "fee-currency": {
+                    "$ref": "#/$defs/currency",
+                    "description": "Символьный код (ISO 4217) валюты комиссии"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Произвольный комментарий к сделке"
+                }
+            },
+            "required": [
+                "id",
+                "trade-id",
+                "account",
+                "asset",
+                "count",
+                "fee",
+                "fee-currency"
+            ],
+            "allOf": [
+                {
+                    "anyOf": [
+                        {"required": ["timestamp"]},
+                        {"required": ["settlement"]}
+                    ]
+                },
+                {
+                    "not": {
+                        "properties": {"count": {"const": 0}}
+                    }
+                },
+                {
+                    "anyOf": [
+                        {"required": ["price"]},
+                        {"required": ["quote"]}
+                    ]
+                },
+                {
+                    "if": {
+                        "anyOf": [
+                            {"required": ["price"]},
+                            {"required": ["accrued-interest"]}
+                        ]
+                    },
+                    "then": {
+                        "required": ["currency"]
+                    }
+                },
+                {
+                    "if": {
+                        "required": ["accrued-interest"]
+                    },
+                    "then": {
+                        "required": ["price"]
+                    }
+                }
+            ]
+        },
+        "payment": {
+            "type": "object",
+            "description": "Выплата, привязанная к активу",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Внутренний уникальный для данной выгрузки идентификатор выплаты"
+                },
+                "payment-id": {
+                    "type": "string",
+                    "description": "Идентификатор выплаты в системе учета брокера или банка"
+                },
+                "account": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Идентификатор счета из раздела 'accounts'"
+                },
+                "asset": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Идентификатор актива из раздела 'assets'"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": ["dividend", "coupon", "bond-amortization", "variation-margin", "fee", "interest", "other"],
+                    "description": "Тип выплаты. Амортизацию облигации нужно учитывать типом 'bond-amortization', но погашения облигации должны учитываться сделкой продажи в разделе 'trades'. Комиссия брокера, привязанная к бумаге, например депозитарная комиссия, должна учитываться типом 'fee'. Процентные доходы кроме купонов, например по банковским счетам, должны учитываться типом 'interest'. Если тип выплаты не попадает ни под один из списка, то используйте 'other'"
+                },
+                "count": {
+                    "type": ["integer", "number"],
+                    "description": "Количество бумаг, по которым произведена выплата. Положительное или отрицательное число (например, для деривативов). Может быть целым числом или вещественным для дробных акций"
+                },
+                "timestamp": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "В формате unix timestamp. Дата и время поступления денежных средств на счет"
+                },
+                "amount": {
+                    "type": "number",
+                    "description": "Сумма выплаты (до удержания налога). Для вариационной маржи может быть отрицательное число или ноль"
+                },
+                "currency": {
+                    "$ref": "#/$defs/currency",
+                    "description": "Символьный код (ISO 4217) валюты"
+                },
+                "tax": {
+                    "type": "number",
+                    "description": "Размер удержанного налога"
+                },
+                "tax-currency": {
+                    "$ref": "#/$defs/currency",
+                    "description": "Символьный код (ISO 4217) валюты"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Произвольный комментарий к выплате"
+                }
+            },
+            "required": [
+                "id",
+                "account",
+                "asset",
+                "type",
+                "count",
+                "timestamp",
+                "amount",
+                "currency"
+            ],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {"type": {"enum":  ["dividend", "coupon", "bond-amortization"]}}
+                    },
+                    "then": {
+                        "properties": {
+                            "count": {"exclusiveMinimum":  0},
+                            "amount": {"exclusiveMinimum":  0}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "required": ["tax"]
+                    },
+                    "then": {
+                        "required": ["tax-currency"]
+                    }
+                }
+            ]
+        },
+        "cash-flow": {
+            "type": "object",
+            "description": "Списание или зачисление денежных средств, которое не может быть привязано к активу",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Внутренний уникальный для данной выгрузки идентификатор списания или зачисления"
+                },
+                "flow-id": {
+                    "type": "string",
+                    "description": "Идентификатор выплаты в системе учета брокера или банка"
+                },
+                "account": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Идентификатор счета из раздела 'accounts'"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": ["cash", "dividend", "coupon", "bond-amortization", "bond-redemption", "variation-margin", "fee", "tax", "interest", "other"],
+                    "description": "Ввод и вывод валюты на счет учитывать типом 'cash'; амортизацию облигации - типом 'bond-amortization', погашения облигации - 'bond-redemption'; комиссии - 'fee'; налоги - 'tax'; процентные доходы кроме купонов, например по банковским счетам, - 'interest'. Если тип не попадает ни под один из списка, то используйте 'other'"
+                },
+                "timestamp": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "В формате unix timestamp. Дата и время поступления или снятия денежных средств со счета"
+                },
+                "amount": {
+                    "type": "number",
+                    "description": "Сумма (до удержания налога). Для зачислений использовать положительные числа, для списаний - отрицательные, вариационная маржа может равнять нулю"
+                },
+                "currency": {
+                    "$ref": "#/$defs/currency",
+                    "description": "Символьный код (ISO 4217) валюты"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Произвольный комментарий к списанию или зачислению"
+                }
+            },
+            "required": [
+                "id",
+                "account",
+                "type",
+                "timestamp",
+                "amount",
+                "currency"
+            ],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {"type": {"enum":  ["dividend", "coupon", "bond-amortization", "bond-redemption"]}}
+                    },
+                    "then": {
+                        "properties": { "amount": {"exclusiveMinimum":  0}}
+                    }
+                }
+            ]
+        },
+        "transfer": {
+            "type": "object",
+            "description": "Ввод, вывод ценной бумаги, сплит акции или обмен валюты не биржевым способом (например банковской операцией)",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Внутренний уникальный для данной выгрузки идентификатор движения актива"
+                },
+                "transfer-id": {
+                    "type": "string",
+                    "description": "Идентификатор операции (обязательное для сплитов акции, для остальных событий - опциональное)"
+                },
+                "account": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Идентификатор счета из раздела 'accounts'"
+                },
+                "timestamp": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "В формате unix timestamp. Фактические дата и время исполнения операции"
+                },
+                "asset": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Идентификатор актива из раздела 'assets'"
+                },
+                "count": {
+                    "type": ["integer", "number"],
+                    "description": "Количество бумаг. Для зачисления на счет используйте положительное значение, для списания - отрицательное. Может быть целым числом или вещественным для дробных акций"
+                },
+                "fee-account": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Идентификатор счета из раздела 'accounts', с которого удержана комиссия"
+                },
+                "fee": {
+                    "type": "number",
+                    "description": "Комиссия операции. Для возврата комиссии использовать отрицательные значения"
+                },
+                "fee-currency": {
+                    "$ref": "#/$defs/currency",
+                    "description": "Символьный код (ISO 4217) валюты комиссии"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Произвольный комментарий к операции"
+                }
+            },
+            "required": [
+                "id",
+                "account",
+                "timestamp",
+                "asset",
+                "count"
+            ],
+            "allOf": [
+                {
+                    "not": {
+                        "properties": {"count": {"const": 0}}
+                    }
+                },
+                {
+                    "if": {
+                        "required": ["fee"]
+                    },
+                    "then": {
+                        "required": ["fee-account", "fee-currency"]
+                    }
+                }
+            ]
+        },
+        "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "not": {"const":  "RUR"},
+            "description": "Символьный код (ISO 4217) валюты"
+        }
+    }
+}
